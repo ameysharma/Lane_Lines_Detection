@@ -57,7 +57,7 @@ def image_process(image):
     threshold = 1
     min_line_length = 10
     max_line_gap = 2
-    line_image = np.copy(image)*0 
+    line_image = np.copy(image)
     lines = cv2.HoughLinesP(masked_edges, rho, theta, threshold, np.array([]),
                             min_line_length, max_line_gap)
     #iterating over the outline
@@ -172,10 +172,16 @@ def Canny(blur_gray):
 
 def Mask(edges,gray):
     mask = np.zeros_like(edges)
-    ignore_mask_color = 255
-    # This time we are defining a four sided polygon to mask
     imshape = gray.shape
-    vertices = np.array([[(100,imshape[0]),(470,300), (480,300), (imshape[1],imshape[0])]], dtype=np.int32)
+    if (len(imshape) > 2): 
+        channel_count = img.shape[2] 
+        # i.e. 3 or 4 depending on your image
+        ignore_mask_color = (255,) * channel_count 
+    else:
+        ignore_mask_color = 255
+    # This time we are defining a four sided polygon to mask
+  
+    vertices = np.array([[(100, imshape[0]),(400, 330), (550, 330), (imshape[1], imshape[0])]], dtype=np.int32)
     cv2.fillPoly(mask, vertices, ignore_mask_color)
     masked_edges = cv2.bitwise_and(edges, mask)
     return masked_edges
@@ -199,7 +205,7 @@ def image_processing(gray,frame):
     masked_edges=Mask(edges,gray)#Function Creating Masked Edges using Pollyfill technique and Converting video frame to edges
     lines=Hough(masked_edges,frame) #Function implementing hough transformation in openCV
     
-    line_image = np.copy(frame)*0
+    line_image = np.copy(frame)
     
     
     #iterating over the outline
@@ -207,10 +213,9 @@ def image_processing(gray,frame):
         for x1,y1,x2,y2 in lines:
             cv2.line(line_image,(x1,y1),(x2,y2),(0,0,255),10)
             #creating color binary image to combine with
-    color_edges = np.dstack((gray, gray, gray))
+    color_edges = np.dstack((gray,gray,gray))
     #Drawing the lines on the edge image
     combo = cv2.addWeighted(color_edges, 0.8, line_image, 1, 0) 
             
     return combo
-
-main()# run the programme
+main()
